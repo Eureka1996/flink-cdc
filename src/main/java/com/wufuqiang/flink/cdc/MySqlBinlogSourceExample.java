@@ -41,18 +41,14 @@ public class MySqlBinlogSourceExample {
         String password = config.get("test.password");
         String checkpointDir = config.get("test.checkpoint.dir");
         System.out.println(host);
-        System.out.println(tableList);
 
         DebeziumSourceFunction<String> sourceFunction = MySQLSource.<String>builder()
-                .hostname(host).port(port).username(username)
-                .password(password)
+                .hostname(host).port(port).username(username).password(password)
                 .databaseList(databaseList)
                 .tableList(tableList)
-                .username(username)
-                .password(password)
                 .startupOptions(StartupOptions.latest())
-//                .deserializer(new CanalDeserializationSchema())
-                .deserializer(new StringDebeziumDeserializationSchema())
+                .deserializer(new CanalDeserializationSchema())
+//                .deserializer(new StringDebeziumDeserializationSchema())
                 .build();
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();

@@ -7,6 +7,7 @@ import io.debezium.data.Envelope;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.util.Collector;
 import org.apache.kafka.connect.data.Field;
+import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 
@@ -23,6 +24,7 @@ public class CanalDeserializationSchema implements DebeziumDeserializationSchema
 
         Envelope.Operation operation = Envelope.operationFor(sourceRecord);
         Struct value = (Struct)sourceRecord.value();
+
         /**
          * INSERT语句：before为null,after为新增的记录值
          * UPDATE语句：before为更新前的数据，after为更新后的数据
@@ -33,24 +35,31 @@ public class CanalDeserializationSchema implements DebeziumDeserializationSchema
         Struct source = value.getStruct("source");
         if(before != null){
             JSONObject data = new JSONObject();
-            for (Field field : before.schema().fields()) {
-                Object o = before.get(field);
-                data.put(field.name(), o);
-            }
+            before.schema().fields().forEach(field -> data.put(field.name(),before.get(field)));
             JSONArray jsonArray = new JSONArray();
             jsonArray.add(data);
             result.put("old",jsonArray);
         }
         if(after!=null){
             JSONObject data = new JSONObject();
-            for (Field field : after.schema().fields()) {
-                Object o = after.get(field);
-                data.put(field.name(), o);
-            }
+            after.schema().fields().forEach(field -> data.put(field.name(),after.get(field)));
             JSONArray jsonArray = new JSONArray();
             jsonArray.add(data);
             result.put("data",jsonArray);
         }
+
+        Struct key = (Struct)sourceRecord.key();
+        StringBuilder keyStr = new StringBuilder();
+        if(key != null){
+            JSONArray pkNamesArray = new JSONArray();
+            key.schema().fields().forEach(pk -> {
+                pkNamesArray.add(pk.name());
+                keyStr.append(pk.name()).append("=").append(key.get(pk)).append("|");
+            });
+            result.put("pkNames",pkNamesArray);
+            result.put("key",keyStr.toString());
+        }
+
         result.put("database", source.getString("db"));
         //事件时间
         result.put("es",source.getInt64("ts_ms"));
