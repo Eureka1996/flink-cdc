@@ -1,0 +1,8 @@
+db.properties
+target
+*-checkpoint
+*.class
+*.log
+*.jar
+*.iml
+.idea/*
