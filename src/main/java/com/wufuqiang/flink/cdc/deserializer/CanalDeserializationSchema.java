@@ -16,10 +16,10 @@ import org.apache.kafka.connect.source.SourceRecord;
  * @date 2021/7/28 4:31 下午
  */
 
-public class CanalDeserializationSchema implements DebeziumDeserializationSchema<String> {
+public class CanalDeserializationSchema implements DebeziumDeserializationSchema<JSONObject> {
 
     @Override
-    public void deserialize(SourceRecord sourceRecord, Collector<String> collector) throws Exception {
+    public void deserialize(SourceRecord sourceRecord, Collector<JSONObject> collector) throws Exception {
         JSONObject result = new JSONObject();
 
         Envelope.Operation operation = Envelope.operationFor(sourceRecord);
@@ -69,11 +69,11 @@ public class CanalDeserializationSchema implements DebeziumDeserializationSchema
         String type = operation.toString().toLowerCase();
         if("create".equals(type)) type = "insert";
         result.put("type", type);
-        collector.collect(result.toJSONString());
+        collector.collect(result);
     }
 
     @Override
-    public TypeInformation<String> getProducedType() {
-        return null;
+    public TypeInformation<JSONObject> getProducedType() {
+        return TypeInformation.of(JSONObject.class);
     }
 }
