@@ -22,6 +22,7 @@ public class MySerializationSchema implements KafkaSerializationSchema<JSONObjec
     public ProducerRecord<byte[], byte[]> serialize(JSONObject element, @Nullable Long timestamp) {
         String key = element.getString("key");
         if(key == null) key = "";
+        System.out.println(key.hashCode()%3);
         return new ProducerRecord<>(this.topic,key.getBytes(),element.toJSONString().getBytes());
     }
 }
